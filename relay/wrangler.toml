@@ -1,0 +1,11 @@
+# Cloudflare Worker that relays your Garmin calories to Plate. See Plate's README.
+# Secrets are set separately with `npx wrangler secret put GARMIN_API_KEY` and
+# `npx wrangler secret put RELAY_PASSCODE`; never put them in this file.
+name = "plate-relay"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[vars]
+# The sites allowed to call the relay: where Plate is hosted, plus local testing.
+ALLOWED_ORIGINS = "https://sophiegpt.github.io,http://localhost:8766"
