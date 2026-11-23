@@ -40,8 +40,14 @@ export default {
     if (!env.GARMIN_API_KEY || !env.RELAY_PASSCODE) {
       return reply({ error: 'setup', message: 'The relay is missing GARMIN_API_KEY or RELAY_PASSCODE.' }, 500);
     }
-    const auth = request.headers.get('Authorization') || '';
-    if (!(await same(auth.replace(/^Bearer\s+/i, ''), env.RELAY_PASSCODE))) return reply({ error: 'passcode' }, 401);
+    // Spaces around the passphrase are ignored (pasting often adds one). On a mismatch,
+    // only the lengths are logged, never the values, so `wrangler tail` can show why.
+    const got = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
+    const want = String(env.RELAY_PASSCODE).trim();
+    if (!(await same(got, want))) {
+      console.log(`passcode mismatch: received ${got.length} characters, expected ${want.length}`);
+      return reply({ error: 'passcode' }, 401);
+    }
 
     const url = new URL(request.url);
     const route = url.pathname.replace(/\/+$/, '') || '/';

@@ -34,7 +34,7 @@ Rough cost with the defaults: typed entries use Haiku 5.5 (a fraction of a cent 
 Garmin doesn't accept calls from web pages, so Plate reads your calories through a tiny relay that you own: a free Cloudflare Worker that holds your Garmin key.
 
 1. **Garmin key.** Sign in to Garmin Connect on the web, open [Personal API Key](https://connect.garmin.com/app/settings/personalApiToken), choose **Create Key**, accept the terms, pick **1 year**, and copy the key. Garmin shows it only once.
-2. **Passphrase.** Pick one you can type on both your computer and your phone: 4–5 random words joined with dashes, at least 16 characters, and not a password you use anywhere else. (Or tap **Make a new passcode** in Plate's Settings → Garmin relay, if you can get it from your phone to your computer.)
+2. **Passphrase.** Pick one you can type on both your computer and your phone: at least 8 characters (a few random words joined with dashes is better), and not a password you use anywhere else. (Or tap **Make a new passcode** in Plate's Settings → Garmin relay, if you can get it from your phone to your computer.)
 3. **Cloudflare.** Create a free account at [dash.cloudflare.com](https://dash.cloudflare.com). Then, in a terminal on your computer:
 
    ```

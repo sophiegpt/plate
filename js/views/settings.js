@@ -136,7 +136,8 @@ export function openRelaySheet() {
     <div class="sheet-head"><h3 class="sheet-title">Garmin</h3><button class="icon-btn" data-act="sheet-close" aria-label="Close">${icon('close')}</button></div>
     <p class="muted small">Plate reads your daily calories from Garmin through your own relay: a free Cloudflare Worker that holds your Garmin Personal API key. Set it up once with the steps in the README, then paste its address and passcode here.</p>
     <label class="field"><span>Relay address</span><input id="relay-url" class="input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://plate-relay.yourname.workers.dev" value="${esc(r.url || '')}"></label>
-    <label class="field"><span>Relay passcode</span><input id="relay-pass" class="input mono" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(r.pass || '')}" data-enter="relay-save"></label>
+    <label class="field"><span>Relay passphrase</span><input id="relay-pass" class="input mono" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(r.pass || '')}" data-enter="relay-save"></label>
+    <p class="hint">The same passphrase you set with <code>wrangler secret put RELAY_PASSCODE</code>.</p>
     <button class="mini" data-act="relay-gen">Make a new passcode</button>
     <div class="sheet-actions">
       <button class="btn primary" data-act="relay-save">Save and test</button>
@@ -231,7 +232,7 @@ export const actions = {
     const pass = (document.getElementById('relay-pass')?.value || '').trim();
     const status = document.getElementById('relay-status');
     if (!/^https:\/\//.test(url)) { if (status) status.textContent = 'The address should start with https://'; return; }
-    if (pass.length < 16) { if (status) status.textContent = 'Use a passcode of at least 16 characters (tap Make a new passcode).'; return; }
+    if (pass.length < 8) { if (status) status.textContent = 'The passphrase needs at least 8 characters: use the same one you set in the relay.'; return; }
     if (status) status.textContent = 'Testing…';
     try {
       await testRelay({ url, pass });

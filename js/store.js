@@ -5,7 +5,7 @@
 const KEY = 'plate:v1';
 const KEY_API = 'plate:anthropic-key';
 const KEY_RELAY = 'plate:garmin-relay';
-export const APP_VERSION = '1.0.1';
+export const APP_VERSION = '1.0.2';
 
 const defaults = () => ({
   version: 1,

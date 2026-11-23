@@ -12,7 +12,7 @@ export class GarminError extends Error {
 export const garminConnected = () => MOCK || !!getRelay()?.url;
 
 const MESSAGES = {
-  passcode: 'The relay passcode doesn\'t match. Check it in Settings → Garmin.',
+  passcode: 'The relay didn\'t accept that passphrase. Check it matches the one you set in the relay (it\'s case-sensitive).',
   garmin_key: 'Garmin rejected your key. It may have expired: create a new one and update the relay.',
   garmin_down: 'Garmin isn\'t answering right now. Try again later.',
   setup: 'The relay is missing its Garmin key or passcode. See the README.',
