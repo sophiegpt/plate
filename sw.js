@@ -2,7 +2,7 @@
 // Bump VERSION whenever any file changes, or phones keep the old copy.
 // Only this site's own files are cached; calls to Anthropic and the Garmin relay
 // always go to the network.
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 const CACHE = `plate-${VERSION}`;
 const FILES = [
   './',

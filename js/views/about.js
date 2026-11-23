@@ -33,7 +33,8 @@ export const ABOUT_HTML = `
 <h2>Privacy and cost</h2>
 <ul>
   <li>Your log stays on this phone. Photos and descriptions go to Anthropic with your own API key, only to be analyzed. Garmin data comes through your own relay.</li>
-  <li>Each analysis is billed to your Anthropic account: roughly 10–15¢ per photo and 5–10¢ per typed entry on Fable 5.2, about half that on Opus 5.5. Settings shows an estimate for the month.</li>
+  <li>Each analysis is billed to your Anthropic account. By default, typed entries use Haiku 5.5 (a fraction of a cent each), and photos, scans and recaps use Sonnet 5.5 (about 2–4¢ a photo): roughly $3–4 a month. Choose different models in Settings; Settings also shows an estimate for the month.</li>
+  <li>For photos, the model matters less than detail: a note like "half the rice" or "cooked in olive oil", or a photo of the label, improves an estimate more than a pricier model does.</li>
   <li>Plate is a tracking tool, not medical advice. If you have a medical condition or a history of disordered eating, set targets with a professional.</li>
 </ul>
 

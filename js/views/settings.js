@@ -12,6 +12,9 @@ const seg = (act, items, cur) => `<div class="seg sm" role="group">${items.map((
 const switchRow = (key, title, sub) => `<label class="row"><span class="row-main"><span class="row-title">${title}</span>${sub ? `<span class="row-sub">${sub}</span>` : ''}</span>
   <input type="checkbox" class="switch" data-bind="setting" data-key="${key}" ${state.settings[key] ? 'checked' : ''}></label>`;
 
+const MODEL_ITEMS = Object.entries(MODELS).map(([id, x]) => [id, x.short]);
+const modelLine = id => (MODELS[id] ? `${MODELS[id].label}. ${MODELS[id].blurb}.` : '');
+
 const EFFORT_HINT = {
   low: 'Quickest answers.',
   medium: 'A good balance of speed and care.',
@@ -38,7 +41,8 @@ function settingsView() {
   <div class="card list">
     <button class="row" data-act="open-key">${icon('key')}<span class="row-main"><span class="row-title">Anthropic API key</span>
       <span class="row-sub">${key ? `Saved on this phone · ends in ${esc(key.slice(-4))}` : MOCK ? 'Test mode: not needed' : 'Not set yet: needed to analyze food'}</span></span>${icon('chev', 'end')}</button>
-    <div class="row stack"><span class="row-title">Model</span>${seg('set-model', Object.entries(MODELS).map(([id, x]) => [id, x.label]), s.model)}<span class="row-sub">${esc(MODELS[s.model]?.blurb || '')}</span></div>
+    <div class="row stack"><span class="row-title">Typed entries</span>${seg('set-quick', MODEL_ITEMS, s.quickModel)}<span class="row-sub">${esc(modelLine(s.quickModel))}</span></div>
+    <div class="row stack"><span class="row-title">Photos, scans and recaps</span>${seg('set-main', MODEL_ITEMS, s.mainModel)}<span class="row-sub">${esc(modelLine(s.mainModel))}</span></div>
     <div class="row stack"><span class="row-title">Thoroughness</span>${seg('set-effort', Object.entries(EFFORTS), s.effort)}<span class="row-sub">${EFFORT_HINT[s.effort]}</span></div>
     ${switchRow('webLookup', 'Look up restaurants and brands', 'When you name a chain or a packaged product, Claude checks its official nutrition online. Adds a few seconds and a few cents.')}
   </div>
@@ -114,8 +118,8 @@ async function testKey() {
   const status = document.getElementById('key-status');
   if (status) status.textContent = 'Testing…';
   try {
-    const model = await testConnection();
-    if (status) status.innerHTML = `${icon('check', 'inline')} Connected. ${esc(model)} is ready.`;
+    const models = await testConnection();
+    if (status) status.innerHTML = `${icon('check', 'inline')} Connected to ${esc(models)}.`;
     rerender();
     return true;
   } catch (e) {
@@ -186,7 +190,8 @@ async function restore(text) {
 // ---------- wiring ----------
 
 export const actions = {
-  'set-model': el => { state.settings.model = el.dataset.v; save(); rerender(); },
+  'set-quick': el => { state.settings.quickModel = el.dataset.v; save(); rerender(); },
+  'set-main': el => { state.settings.mainModel = el.dataset.v; save(); rerender(); },
   'set-effort': el => { state.settings.effort = el.dataset.v; save(); rerender(); },
   'set-tone': el => { state.settings.tone = el.dataset.v; save(); rerender(); },
   'set-swaps': el => { state.settings.swaps = el.dataset.v; save(); rerender(); },

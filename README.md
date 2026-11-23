@@ -14,7 +14,7 @@ Your log stays on your phone. Photos and descriptions go to Anthropic with your 
 2. Add some credit under **Billing**, then set a monthly limit under **Settings → Limits**.
 3. Create a key under **Settings → API keys**. Keep it somewhere safe, like your password manager. You'll paste it into Plate on your phone.
 
-Rough cost: 10–15¢ per photo and 5–10¢ per typed entry on Fable 5.2, about half that on Opus 5.5. Settings in the app shows an estimate for the month.
+Rough cost with the defaults: typed entries use Haiku 5.5 (a fraction of a cent each), and photos, scans and the daily recap use Sonnet 5.5 (about 2–4¢ a photo). That's roughly $3–4 a month at 6–10 logs a day. You can pick a different model for each in Settings: Fable 5.2, the most capable, costs about 10–15¢ a photo. Settings shows an estimate for the month.
 
 ## 2. Put it online with GitHub Pages (about 10 minutes, once)
 
@@ -34,7 +34,7 @@ Rough cost: 10–15¢ per photo and 5–10¢ per typed entry on Fable 5.2, about
 Garmin doesn't accept calls from web pages, so Plate reads your calories through a tiny relay that you own: a free Cloudflare Worker that holds your Garmin key.
 
 1. **Garmin key.** Sign in to Garmin Connect on the web, open [Personal API Key](https://connect.garmin.com/app/settings/personalApiToken), choose **Create Key**, accept the terms, pick **1 year**, and copy the key. Garmin shows it only once.
-2. **Passcode.** In Plate, go to **Settings → Garmin relay** and tap **Make a new passcode**. It's copied for you; keep it for step 4.
+2. **Passphrase.** Pick one you can type on both your computer and your phone: 4–5 random words joined with dashes, at least 16 characters, and not a password you use anywhere else. (Or tap **Make a new passcode** in Plate's Settings → Garmin relay, if you can get it from your phone to your computer.)
 3. **Cloudflare.** Create a free account at [dash.cloudflare.com](https://dash.cloudflare.com). Then, in a terminal on your computer:
 
    ```
@@ -45,8 +45,8 @@ Garmin doesn't accept calls from web pages, so Plate reads your calories through
    npx wrangler secret put RELAY_PASSCODE
    ```
 
-   `deploy` prints your relay's address, like `https://plate-relay.yourname.workers.dev`. Each `secret put` asks you to paste a value: the Garmin key, then the passcode. If Plate isn't hosted at `sophiegpt.github.io`, change `ALLOWED_ORIGINS` in `relay/wrangler.toml` first.
-4. **Connect.** Back in Plate, paste the relay's address and the passcode into **Settings → Garmin relay**, then tap **Save and test**. It pulls your last 4 weeks straight away.
+   `deploy` prints your relay's address, like `https://plate-relay.yourname.workers.dev`. Each `secret put` asks for a value: the Garmin key, then the passphrase. If Plate isn't hosted at `sophiegpt.github.io`, change `ALLOWED_ORIGINS` in `relay/wrangler.toml` first. On a work network that inspects secure connections, run `$env:NODE_OPTIONS = '--use-system-ca'` in the same PowerShell window first.
+4. **Connect.** Back in Plate, enter the relay's address and the passphrase in **Settings → Garmin relay**, then tap **Save and test**. It pulls your last 4 weeks straight away.
 
 When the Garmin key expires (Garmin emails you a week before), create a new one and run `npx wrangler secret put GARMIN_API_KEY` again.
 

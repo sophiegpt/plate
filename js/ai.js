@@ -5,14 +5,21 @@ import { state, save, day, getApiKey } from './store.js';
 import { dayTotals, entryTotals, targetFor, patternText, GOALS } from './nutrition.js';
 import { dayKey, dayLong, addDays, timeText, monthKey, sleep, MEAL_KEYS, mealFor } from './util.js';
 
+// Prices are US$ per million tokens. Typed entries and photos can use different models.
 export const MODELS = {
-  'claude-fable-5-2': { label: 'Fable 5.2', blurb: 'Most capable', price: { in: 8, out: 40, cacheRead: 0.2, cacheWrite: 10 } },
-  'claude-opus-5-5': { label: 'Opus 5.5', blurb: 'About half the cost', price: { in: 4, out: 20, cacheRead: 0.2, cacheWrite: 5 } },
-  'claude-sonnet-5-5': { label: 'Sonnet 5.5', blurb: 'About a quarter of the cost', price: { in: 2, out: 10, cacheRead: 0.1, cacheWrite: 2.5 } },
+  'claude-haiku-5-5': { label: 'Haiku 5.5', short: 'Haiku', blurb: 'Fastest and cheapest: a fraction of a cent per request', price: { in: 0.1, out: 0.5, cacheRead: 0.01, cacheWrite: 0.125 } },
+  'claude-sonnet-5-5': { label: 'Sonnet 5.5', short: 'Sonnet', blurb: 'Strong and quick: about 2–4¢ per photo', price: { in: 2, out: 10, cacheRead: 0.1, cacheWrite: 2.5 } },
+  'claude-opus-5-5': { label: 'Opus 5.5', short: 'Opus', blurb: 'More careful: about 5–8¢ per photo', price: { in: 4, out: 20, cacheRead: 0.2, cacheWrite: 5 } },
+  'claude-fable-5-2': { label: 'Fable 5.2', short: 'Fable', blurb: 'Most capable: about 10–15¢ per photo', price: { in: 8, out: 40, cacheRead: 0.2, cacheWrite: 10 } },
 };
 const OTHER_PRICE = { in: 5, out: 25, cacheRead: 0.5, cacheWrite: 6.25 }; // a server-side fallback model
-const WITH_FALLBACKS = new Set(Object.keys(MODELS));
+// Haiku has no server-side refusal fallback, so only the others ask for one.
+const WITH_FALLBACKS = new Set(['claude-sonnet-5-5', 'claude-opus-5-5', 'claude-fable-5-2']);
 export const EFFORTS = { low: 'Fast', medium: 'Balanced', high: 'Thorough' };
+
+// Which model a request uses: typed entries use the quick model; photos, scans and
+// recaps use the main one.
+export const modelFor = kind => (kind === 'text' ? state.settings.quickModel : state.settings.mainModel) || 'claude-sonnet-5-5';
 
 // ?mock on localhost returns canned answers, for testing the screens without a key.
 export const MOCK = typeof location !== 'undefined' && ['localhost', '127.0.0.1'].includes(location.hostname) && /[?&]mock\b/.test(location.search);
@@ -47,7 +54,7 @@ export function friendlyError(e) {
   if (isAbort(e)) return 'Cancelled.';
   if (is(e, 'AuthenticationError')) return 'Your Anthropic API key was rejected. Check it in Settings.';
   if (is(e, 'PermissionDeniedError')) return 'Your API key isn\'t allowed to use this model. Pick another model in Settings.';
-  if (is(e, 'NotFoundError')) return `${modelLabel(state.settings.model)} isn't available on your account. Pick another model in Settings.`;
+  if (is(e, 'NotFoundError')) return 'That model isn\'t available on your account. Pick another one in Settings.';
   if (is(e, 'PaymentRequiredError')) return 'Your Anthropic account is out of credit. Add some at platform.claude.com, then try again.';
   if (is(e, 'RateLimitError')) return 'Too many requests at once. Wait a minute and try again.';
   if (is(e, 'OverloadedError') || e?.status === 529) return 'Claude is overloaded right now. Try again in a minute.';
@@ -64,7 +71,7 @@ export function friendlyError(e) {
 // ---------- spend tracking (estimated from token counts) ----------
 
 function track(msg) {
-  const p = MODELS[msg?.model]?.price || (msg?.model ? OTHER_PRICE : MODELS[state.settings.model].price);
+  const p = MODELS[msg?.model]?.price || OTHER_PRICE;
   const u = msg?.usage || {};
   const usd = ((u.input_tokens || 0) * p.in + (u.output_tokens || 0) * p.out
     + (u.cache_read_input_tokens || 0) * p.cacheRead + (u.cache_creation_input_tokens || 0) * p.cacheWrite) / 1e6
@@ -375,7 +382,7 @@ export async function analyzeFood({ text = '', image = null, key = dayKey(), ref
   }
   tools.push(RECORD_TOOL);
   const params = {
-    model: s.model,
+    model: modelFor(image ? 'photo' : 'text'),
     max_tokens: 16000,
     system: [{ type: 'text', text: foodSystem(s), cache_control: { type: 'ephemeral' } }],
     tools,
@@ -437,7 +444,7 @@ export function normScan(x) {
 export async function readScan(image, { signal, onStatus } = {}) {
   if (MOCK) return mockScan(signal);
   const msg = await run({
-    model: state.settings.model,
+    model: modelFor('scan'),
     max_tokens: 8000,
     system: SCAN_SYSTEM,
     output_config: { effort: 'medium', format: { type: 'json_schema', schema: SCAN_SCHEMA } },
@@ -484,7 +491,7 @@ function recapPrompt(key) {
 export async function recapDay(key, { signal } = {}) {
   if (MOCK) return mockRecap(signal);
   const msg = await run({
-    model: state.settings.model,
+    model: modelFor('recap'),
     max_tokens: 6000,
     system: recapSystem(state.settings),
     output_config: { effort: 'low', format: { type: 'json_schema', schema: RECAP_SCHEMA } },
@@ -501,11 +508,14 @@ export async function recapDay(key, { signal } = {}) {
   };
 }
 
-// A free call that checks the key and that the chosen model is available.
+// A free call that checks the key and that both chosen models are available.
+// Returns their names, e.g. "Haiku 5.5 and Sonnet 5.5".
 export async function testConnection() {
-  if (MOCK) { await sleep(500); return modelLabel(state.settings.model); }
-  const m = await getClient().models.retrieve(state.settings.model);
-  return m?.display_name || modelLabel(state.settings.model);
+  const ids = [...new Set([modelFor('text'), modelFor('photo')])];
+  if (MOCK) { await sleep(500); return ids.map(modelLabel).join(' and '); }
+  const c = getClient();
+  const found = await Promise.all(ids.map(id => c.models.retrieve(id)));
+  return found.map((m, i) => m?.display_name || modelLabel(ids[i])).join(' and ');
 }
 
 // ---------- mock answers (localhost with ?mock) ----------

@@ -5,13 +5,14 @@
 const KEY = 'plate:v1';
 const KEY_API = 'plate:anthropic-key';
 const KEY_RELAY = 'plate:garmin-relay';
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.0.1';
 
 const defaults = () => ({
   version: 1,
   onboarded: false,
   settings: {
-    model: 'claude-fable-5-2',
+    quickModel: 'claude-haiku-5-5', // typed entries
+    mainModel: 'claude-sonnet-5-5', // photos, body scans and the daily recap
     effort: 'medium',     // low | medium | high
     tone: 'tough',        // straight | gentle | tough
     swaps: 'auto',        // auto | always | ask

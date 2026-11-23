@@ -5,7 +5,7 @@ import { dayTotals, entryTotals, itemsTotal, targetFor, kcalStatus, addTo, zero,
 import { esc, num, uid, dayKey, dayTitle, addDays, MEALS, mealFor, stampFor, timeText } from '../util.js';
 import { icon, openSheet, setSheet, sheetTag, closeSheet, toast, rerender, go, macroLine } from '../ui.js';
 import { prepareImage, putThumb, hydrateThumbs } from '../photos.js';
-import { analyzeFood, friendlyError, isAbort, hasKey, modelLabel } from '../ai.js';
+import { analyzeFood, friendlyError, isAbort, hasKey, modelLabel, modelFor } from '../ai.js';
 
 const PORTIONS = [[0.5, '½'], [0.75, '¾'], [1, '1×'], [1.5, '1½'], [2, '2×']];
 
@@ -175,7 +175,7 @@ function statusText(j) {
   if (s < 5) return j.refine ? 'Applying your correction…' : j.image ? 'Looking at your photo…' : 'Reading what you had…';
   if (s < 12) return 'Estimating portions…';
   if (s < 22) return 'Checking it against your day…';
-  return `Still working. ${modelLabel(state.settings.model)} is being thorough…`;
+  return `Still working. ${modelLabel(modelFor(j.image ? 'photo' : 'text'))} is being thorough…`;
 }
 
 function paintStatus() {

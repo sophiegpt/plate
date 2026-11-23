@@ -78,8 +78,8 @@ export const actions = {
     setApiKey(value);
     if (status) status.textContent = 'Testing…';
     try {
-      const model = await testConnection();
-      if (status) status.textContent = `Connected. ${model} is ready.`;
+      const models = await testConnection();
+      if (status) status.textContent = `Connected to ${models}.`;
       go('#/welcome/3');
     } catch (e) {
       if (status) status.textContent = friendlyError(e);
